@@ -137,6 +137,19 @@ def get_one_blog(blog_id: str, db: Session = Depends(get_db),
     return existing_blog
 
 
+@app.get("/public/blogs/{blog_id}", response_model=schemas.BlogPublic, tags=["public_blogs"])
+def get_one_blog_public(blog_id: str, db: Session = Depends(get_db)):
+    existing_blog = db.query(models.Blogs).filter(models.Blogs.blog_id == blog_id,
+                                                  models.Blogs.status == models.StatusTypes.PUBLISHED.value).first()
+    if not existing_blog:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="blog id is incorrect")
+    id = existing_blog.author_id
+    existing_author = db.query(models.Authors).filter(models.Authors.author_id == id).first()
+    response_dict = {"blog_id": blog_id, "author_email": existing_author.email,
+                     "title": existing_blog.title, "body": existing_blog.body}
+    return response_dict
+
+
 @app.patch("/blogs/{blog_id}", tags=["blogs"], response_model=schemas.Blog)
 def update_blog(blog_id: str, req_body: schemas.BlogUpdate, db: Session = Depends(get_db),
                 current_author: models.Authors = Depends(get_current_user)):
@@ -192,4 +205,3 @@ def delete_blog(blog_id: str, db: Session = Depends(get_db),
 
 if __name__ == '__main__':
     uvicorn.run("project:app", reload=True)
-

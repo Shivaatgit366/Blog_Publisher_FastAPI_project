@@ -48,3 +48,11 @@ class TokenData(BaseModel):
     email: Optional[str] = None
 
 
+class BlogPublic(BaseModel):
+    blog_id: str
+    author_email: str
+    title: str
+    body: str
+
+    class Config:
+        orm_mode = True
